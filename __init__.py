@@ -14,11 +14,11 @@ from mycroft.util.log import LOG
 # Each skill is contained within its own class, which inherits base methods
 # from the MycroftSkill class.  You extend this class as shown below.
 
-class ConversationSkill(MycroftSkill):
+class TestSkill(MycroftSkill):
 
     # The constructor of the skill, which calls MycroftSkill's constructor
     def __init__(self):
-        super(TemplateSkill, self).__init__(name="ConversationSkill")
+        super(TestSkill, self).__init__(name="TestSkill")
         # Initialize working variables used within the skill.
         self.count = 0
 
@@ -35,14 +35,14 @@ class ConversationSkill(MycroftSkill):
     #   'Hello world'
     #   'Howdy you great big world'
     #   'Greetings planet earth'
-    @intent_handler(IntentBuilder("").require("Hello").require("World"))
+    @intent_handler(IntentBuilder("").require("Testing"))
     def handle_hello_world_intent(self, message):
         # In this case, respond by simply speaking a canned response.
         # Mycroft will randomly speak one of the lines from the file
         #    dialogs/en-us/hello.world.dialog
-        self.speak_dialog("hello.world")
+        self.speak_dialog("testing")
 
-    @intent_handler(IntentBuilder("").require("Count").require("Dir"))
+    @intent_handler(IntentBuilder("").require("Count"))
     def handle_count_intent(self, message):
         if message.data["Dir"] == "up":
             self.count += 1
@@ -62,4 +62,4 @@ class ConversationSkill(MycroftSkill):
 # The "create_skill()" method is used to create an instance of the skill.
 # Note that it's outside the class itself.
 def create_skill():
-    return TemplateSkill()
+    return TestSkill()

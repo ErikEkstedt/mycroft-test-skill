@@ -1,2 +1,2 @@
-The count is now {{count}}
-We are now up to {{count}}
+Test count. The count is now {{count}}
+Test count. We are now up to {{count}}

@@ -21,21 +21,18 @@ class TestSkill(MycroftSkill):
                 'signal',
                 'discover',
                 'slack',
-                'dolphin']
+                'status',
+                'dolphin',
+                'folders']
 
-    @intent_handler(IntentBuilder("").require("Close"))
-    def handle_hello_world_intent(self, message):
+    @intent_handler(IntentBuilder("").require("close"))
+    def close_programs(self, message):
         program = message.data.get('utterance').lower()
         success = False
 
         for p in program.split():
             if p in self.program_list:
-                if p == 'console':
-                    p = 'konsole'
-                elif p == 'folders':
-                    p = 'dolphin'
-                elif p == 'signal':
-                    p = 'signal-desktop'
+                p = self.check_correct_process_name(p)
 
                 subprocess.Popen(['pkill', p])  
                 # Only works one time?
@@ -47,22 +44,15 @@ class TestSkill(MycroftSkill):
 
         if not success:
             self.speak_dialog(f'Whats {program.split()[-1]}?')
-        return True
 
     @intent_handler(IntentBuilder("").require("Open"))
-    def handle_hello_world_intent(self, message):
+    def open_programs(self, message):
         program = message.data.get('utterance').lower()
         success = False
 
         for p in program.split():
             if p in self.program_list:
-                if p == 'console':
-                    p = ['konsole','-e', 'tmux']
-                elif p == 'folders':
-                    p = 'dolphin'
-                elif p == 'signal':
-                    p = 'signal-desktop'
-
+                p = self.check_correct_process_name(p)
                 subprocess.Popen(p)  
                 # Only works one time?
                 # with daemon.DaemonContext():  
@@ -73,7 +63,19 @@ class TestSkill(MycroftSkill):
 
         if not success:
             self.speak_dialog(f'Whats {program.split()[-1]}?')
-        return True
+
+    def check_correct_process_name(self, p):
+        if p == 'console':
+            p = 'konsole'
+        elif p == 'discover':
+            p = 'plasma-discover'
+        elif p == 'folders':
+            p = 'dolphin'
+        elif p == 'signal':
+            p = 'signal-desktop'
+        elif p == 'status':
+            p = ['konsole', '-e',  'htop']
+        return p
 
     def stop(self):
        return False

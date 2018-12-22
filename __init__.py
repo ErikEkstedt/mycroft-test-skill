@@ -5,6 +5,9 @@ from mycroft.util.log import LOG
 import os
 import subprocess
 
+# TODO
+# More advanced scripts
+# ssh to kth: open terminal, ssh, ls
 
 class TestSkill(MycroftSkill):
     def __init__(self):
@@ -23,6 +26,20 @@ class TestSkill(MycroftSkill):
                 'folders']
         self.directions = ['left', 'right', 'back', 'next']
 
+    def check_correct_process_name(self, p):
+        if p == 'console':
+            p = ['konsole']
+        elif p == 'discover':
+            p = ['plasma-discover']
+        elif p == 'folders':
+            p = ['dolphin']
+        elif p == 'signal':
+            p = ['signal-desktop']
+        elif p == 'status':
+            # p = ['konsole', '-e',  'htop', 'ksysguard']
+            p = [['konsole', '-e',  'htop'], ['ksysguard']]
+        return p
+
     @intent_handler(IntentBuilder("").require("close"))
     def close_programs(self, message):
         program = message.data.get('utterance').lower()
@@ -33,10 +50,6 @@ class TestSkill(MycroftSkill):
                 p = self.check_correct_process_name(p)
 
                 subprocess.Popen(['pkill', p])  
-                # Only works one time?
-                # with daemon.DaemonContext():  
-                    # This process now survives mycroft termination
-                    # subprocess.Popen(p)  
                 self.speak_dialog('Done!')
                 success = True
 
@@ -53,13 +66,14 @@ class TestSkill(MycroftSkill):
                 p_list = self.check_correct_process_name(p)
                 
                 for p in p_list:
-                    subprocess.Popen(p)  
+                    subprocess.Popen(p)  # If mycroft dies this dies.
+                self.speak_dialog('Done!')
+                success = True
+
                 # Only works one time?
                 # with daemon.DaemonContext():  
                     # This process now survives mycroft termination
                     # subprocess.Popen(p)  
-                self.speak_dialog('Done!')
-                success = True
 
         if not success:
             self.speak_dialog(f'Whats {program.split()[-1]}?')
@@ -81,19 +95,10 @@ class TestSkill(MycroftSkill):
                 cmd = command(p)
                 subprocess.Popen(cmd)  
 
-    def check_correct_process_name(self, p):
-        if p == 'console':
-            p = ['konsole']
-        elif p == 'discover':
-            p = ['plasma-discover']
-        elif p == 'folders':
-            p = ['dolphin']
-        elif p == 'signal':
-            p = ['signal-desktop']
-        elif p == 'status':
-            # p = ['konsole', '-e',  'htop', 'ksysguard']
-            p = [['konsole', '-e',  'htop'], ['ksysguard']]
-        return p
+    @intent_handler(IntentBuilder("").require("Lock"))
+    def lock_desktop(self):
+        cmd = ['qdbus', 'org.kde.screensaver', '/ScreenSaver', 'Lock']
+        subprocess.Popen(cmd)  
 
     def stop(self):
        return False

@@ -19,6 +19,7 @@ class TestSkill(MycroftSkill):
                 'browser',
                 'spotify',
                 'signal',
+                'terminal',
                 'discover',
                 'slack',
                 'status',
@@ -28,15 +29,18 @@ class TestSkill(MycroftSkill):
 
     def check_correct_process_name(self, p):
         if p == 'console':
-            p = ['konsole']
+            p = [['konsole', '-e',  'tmux']]
+        elif p == 'terminal':
+            p = [['konsole', '-e',  'tmux']]
         elif p == 'discover':
             p = ['plasma-discover']
         elif p == 'folders':
             p = ['dolphin']
+        elif p == 'dolphin':
+            p = ['dolphin']
         elif p == 'signal':
             p = ['signal-desktop']
         elif p == 'status':
-            # p = ['konsole', '-e',  'htop', 'ksysguard']
             p = [['konsole', '-e',  'htop'], ['ksysguard']]
         return p
 
@@ -47,33 +51,35 @@ class TestSkill(MycroftSkill):
 
         for p in program.split():
             if p in self.program_list:
-                p = self.check_correct_process_name(p)
+                p_list = self.check_correct_process_name(p)
 
-                subprocess.Popen(['pkill', p])  
-                self.speak_dialog('Done!')
-                success = True
+                for p in p_list:
+                    subprocess.Popen(['pkill', p])  
+                    self.speak_dialog(p)
+                    self.speak_dialog('terminated')
+                    success = True
 
         if not success:
             self.speak_dialog(f'Whats {program.split()[-1]}?')
 
     @intent_handler(IntentBuilder("").require("Open"))
     def open_programs(self, message):
+        '''
+        Opens a program using the commandline (subprocess.Popen). 
+        The processes created dies when mycroft dies.
+        '''
         program = message.data.get('utterance').lower()
         success = False
 
         for p in program.split():
             if p in self.program_list:
                 p_list = self.check_correct_process_name(p)
-                
-                for p in p_list:
-                    subprocess.Popen(p)  # If mycroft dies this dies.
-                self.speak_dialog('Done!')
+                for pl in p_list:
+                    subprocess.Popen(pl)  # If mycroft dies this dies.
+                    self.speak_dialog(p)
+                # self.speak_dialog('Done!')
                 success = True
 
-                # Only works one time?
-                # with daemon.DaemonContext():  
-                    # This process now survives mycroft termination
-                    # subprocess.Popen(p)  
 
         if not success:
             self.speak_dialog(f'Whats {program.split()[-1]}?')
